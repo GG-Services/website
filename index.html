@@ -1167,27 +1167,26 @@
                 <p class="text-xs text-slate-500 mt-1">Remplissez ce formulaire ou accédez au Google Form officiel.</p>
             </div>
 
-            <!-- MODIFICATION: Attribut action vers PHP et noms des variables ajoutés -->
-            <form action="inscription.php" method="POST" class="space-y-4">
+            <form onsubmit="handleRegistrationSubmit(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nom & Prénom</label>
-                    <input type="text" name="nom" id="reg-name" required placeholder="Ex: Ahmed Ben Ali" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
+                    <input type="text" id="reg-name" name="nom" required placeholder="Ex: Ahmed Ben Ali" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Téléphone</label>
-                        <input type="tel" name="telephone" id="reg-phone" required placeholder="29 123 456" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
+                        <input type="tel" id="reg-phone" name="telephone" required placeholder="29 123 456" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">E-mail</label>
-                        <input type="email" name="email" id="reg-email" required placeholder="votre@email.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
+                        <input type="email" id="reg-email" name="email" required placeholder="votre@email.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Formation souhaitée</label>
-                    <select name="formation" id="reg-course" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange bg-white">
+                    <select id="reg-course" name="formation" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-orange bg-white">
                         <option value="Système d'Information Géographique">Système d'Information Géographique (SIG)</option>
                         <option value="AutoCAD Civil 3D">AutoCAD® Civil 3D</option>
                         <option value="Revit Structure">Autodesk® Revit Structure</option>
@@ -1217,29 +1216,24 @@
     <script>
         // Tab Navigation Switcher
         function switchTab(tabId) {
-            // Hide all tab contents
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(el => el.classList.remove('active'));
 
-            // Reset navigation active styles
             const navButtons = document.querySelectorAll('.nav-btn');
             navButtons.forEach(btn => {
                 btn.classList.remove('text-brand-orange', 'bg-white/10');
             });
 
-            // Show selected tab content
             const targetContent = document.getElementById('tab-' + tabId);
             if (targetContent) {
                 targetContent.classList.add('active');
             }
 
-            // Highlight active navigation button
             const activeNavBtn = document.getElementById('nav-' + tabId);
             if (activeNavBtn) {
                 activeNavBtn.classList.add('text-brand-orange', 'bg-white/10');
             }
 
-            // Scroll to top smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1280,7 +1274,6 @@
             const cards = document.querySelectorAll('.course-card');
             const buttons = document.querySelectorAll('.filter-pill');
             
-            // Update button UI
             buttons.forEach(btn => {
                 if (btn.textContent.trim().toLowerCase() === category.toLowerCase() || (category === 'all' && btn.textContent.trim() === 'Toutes')) {
                     btn.className = 'filter-pill bg-brand-orange text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold';
@@ -1352,7 +1345,42 @@
             });
         }
 
-        // Form Submit Actions - Mis à jour pour ne garder que le contact, l'inscription est gérée par PHP
+        // Form Submit Actions using AJAX for Registration
+        async function handleRegistrationSubmit(e) {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Envoi en cours...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('nom', document.getElementById('reg-name').value);
+            formData.append('telephone', document.getElementById('reg-phone').value);
+            formData.append('email', document.getElementById('reg-email').value);
+            formData.append('formation', document.getElementById('reg-course').value);
+
+            try {
+                const response = await fetch('traitement_inscription.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('Merci ! Votre pré-inscription a été envoyée avec succès.');
+                    e.target.reset();
+                    closeRegisterModal();
+                } else {
+                    alert('Une erreur est survenue lors de l\'envoi du formulaire.');
+                }
+            } catch (error) {
+                alert('Erreur de connexion. Veuillez réessayer plus tard.');
+            } finally {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
         function handleContactSubmit(e) {
             e.preventDefault();
             alert('Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.');
